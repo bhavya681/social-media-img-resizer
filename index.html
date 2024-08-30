@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Image Resizer</title>
+    <style>
+        /* Resetting some basic styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .container:hover {
+            transform: scale(1.02);
+        }
+
+        h1 {
+            font-size: 26px;
+            color: #212529;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        #imageUpload {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            font-size: 16px;
+            color: #007bff;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        #imageUpload:hover {
+            background-color: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+
+        #previewContainer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background-color: #fafafa;
+            padding: 10px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+        }
+
+        .resize-options {
+            margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .resize-options button {
+            margin: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .resize-options button:hover {
+            background-color: #0056b3;
+        }
+
+        #downloadContainer {
+            margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #downloadContainer a {
+            display: inline-block;
+            margin: 8px;
+            padding: 12px 20px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        #downloadContainer a:hover {
+            background-color: #218838;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            .resize-options button {
+                padding: 10px 18px;
+                font-size: 15px;
+            }
+
+            #downloadContainer a {
+                padding: 10px 18px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 22px;
+            }
+
+            #imageUpload {
+                padding: 10px 18px;
+                font-size: 15px;
+            }
+
+            .resize-options button,
+            #downloadContainer a {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            h1 {
+                font-size: 20px;
+            }
+
+            #imageUpload {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+
+            .resize-options button,
+            #downloadContainer a {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 18px;
+            }
+
+            #imageUpload {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .resize-options button,
+            #downloadContainer a {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Social Media Image Resizer</h1>
+        <input type="file" id="imageUpload" accept="image/*" onchange="loadImage(event)">
+        <div id="previewContainer">
+            <canvas id="imageCanvas"></canvas>
+        </div>
+        <div class="resize-options">
+            <button onclick="resizeImage('Instagram')">Instagram</button>
+            <button onclick="resizeImage('Facebook')">Facebook</button>
+            <button onclick="resizeImage('Twitter')">Twitter</button>
+            <button onclick="resizeImage('LinkedIn')">LinkedIn</button>
+        </div>
+        <div id="downloadContainer"></div>
+    </div>
+    <script>
+        let image = new Image();
+        let canvas = document.getElementById('imageCanvas');
+        let ctx = canvas.getContext('2d');
+
+        const socialMediaSizes = {
+            Instagram: { width: 1080, height: 1080 },
+            Facebook: { width: 1200, height: 630 },
+            Twitter: { width: 1200, height: 675 },
+            LinkedIn: { width: 1104, height: 736 }
+        };
+
+        function loadImage(event) {
+            let reader = new FileReader();
+            reader.onload = function() {
+                image.src = reader.result;
+                image.onload = function() {
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    ctx.drawImage(image, 0, 0);
+                };
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function resizeImage(platform) {
+            let size = socialMediaSizes[platform];
+            let tempCanvas = document.createElement('canvas');
+            let tempCtx = tempCanvas.getContext('2d');
+
+            tempCanvas.width = size.width;
+            tempCanvas.height = size.height;
+
+            tempCtx.drawImage(image, 0, 0, size.width, size.height);
+
+            let dataUrl = tempCanvas.toDataURL('image/jpeg');
+            downloadImage(dataUrl, `${platform}_${size.width}x${size.height}.jpg`);
+        }
+
+        function downloadImage(dataUrl, filename) {
+            let link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+            link.textContent = `Download ${filename}`;
+            document.getElementById('downloadContainer').appendChild(link);
+        }
+    </script>
+</body>
+</html>
